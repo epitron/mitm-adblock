@@ -54,7 +54,7 @@ end
 
 
 for arg in ARGV
-  p arg
+  # p arg
   json      = JSONHash.load arg
   batch     = json["batch"]
   activity  = batch["activityReadings"] || []

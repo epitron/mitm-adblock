@@ -26,7 +26,7 @@ for arg in sys.argv[1:]:
     if matcher.search(req.url) and len(req.content) > 0:
 
       t = datetime.fromtimestamp(req.timestamp_start)
-      outfile = t.strftime('userloc-%Y-%m-%d_%H:%M:%S.json')
+      outfile = t.strftime('json/userloc-%Y-%m-%d_%H:%M:%S.json')
 
       print
       print "* [{time}] {url}".format(time=t, url=req.url)
