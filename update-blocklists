@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ ! -d lists ]; then
+  mkdir lists
+fi
+
+cd lists
+
+echo "* Updating lists in `pwd`"
+
+wget -N https://easylist-downloads.adblockplus.org/easylist.txt
+wget -N https://easylist-downloads.adblockplus.org/easyprivacy.txt
+wget -N https://easylist-downloads.adblockplus.org/fanboy-annoyance.txt
+wget -N https://easylist-downloads.adblockplus.org/fanboy-social.txt
