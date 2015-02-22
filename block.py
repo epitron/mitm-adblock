@@ -59,7 +59,8 @@ def load_rules(blocklists=None):
   if blocklists is None:
     import glob
     blocklists = glob.glob("lists/*")
-  print "Loading rules:", blocklists
+
+  print blocklists
 
   # rules = AdblockRules( combined(blocklists), use_re2=True, max_mem=512*1024*1024, supported_options=['script', 'domain'] )
   # rules = AdblockRules( combined(blocklists), use_re2=True, supported_options=['script', 'domain', 'image', 'stylesheet', 'object'] )
@@ -78,9 +79,9 @@ def start(context, argv):
     """
     global rules
 
-    context.log("loading adblock rules...")
-
+    context.log("* Loading adblock rules...")
     rules = load_rules()
+    context.log("  |_ done!")
 
 IMAGE_MATCHER = re2.compile(r"\.(png|jpe?g|gif)$")
 SCRIPT_MATCHER = re2.compile(r"\.(js)$")
@@ -102,7 +103,7 @@ def request(context, flow):
         options["stylesheet"] = True
 
     if rules.should_block(req.url, options):
-        context.log("blocking: %s" % req.url)
+        context.log("vvvvvvvvvvvvvvvvvvvv BLOCKED vvvvvvvvvvvvvvvvvvvvvvvvvvv")
 
         resp = HTTPResponse((1,1), 404, "OK",
             ODictCaseless([["Content-Type", "text/html"]]),
