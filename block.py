@@ -104,12 +104,21 @@ def request(context, flow):
 
     if rules.should_block(req.url, options):
         context.log("vvvvvvvvvvvvvvvvvvvv BLOCKED vvvvvvvvvvvvvvvvvvvvvvvvvvv")
+        context.log("accept: %s" % flow.request.headers.get("Accept"))
+        context.log("blocked-url: %s" % flow.request.url)
+        context.log("^^^^^^^^^^^^^^^^^^^^ BLOCKED ^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
-        resp = HTTPResponse((1,1), 404, "OK",
+        # resp = HTTPResponse((1,1), 404, "OK",
+        #     ODictCaseless([["Content-Type", "text/html"]]),
+        #     "A terrible ad has been removed!")
+
+        resp = HTTPResponse((1,1), 200, "OK",
             ODictCaseless([["Content-Type", "text/html"]]),
-            "A terrible ad has been removed!")
+            "BLOCKED.")
 
         flow.reply(resp)
+    else:
+        context.log("url: %s" % flow.request.url)
 
 # def response(context, flow):
 #     """
