@@ -1,12 +1,13 @@
 #!/bin/bash
+LISTDIR=easylists
 
-if [ ! -d lists ]; then
-  mkdir lists
+if [ ! -d $LISTDIR ]; then
+  mkdir $LISTDIR
 fi
 
-cd lists
+cd $LISTDIR
 
-echo "* Updating lists in `pwd`"
+echo "* Updating easylists in $LISTDIR"
 
 wget -N https://easylist-downloads.adblockplus.org/easylist.txt
 wget -N https://easylist-downloads.adblockplus.org/easyprivacy.txt
