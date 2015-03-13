@@ -1,4 +1,103 @@
 """
+An mitmproxy adblock script!
+(Required python modules: re2 and adblockparser)
+
+(c) 2015 epitron
+"""
+
+import re2
+from libmproxy.script import concurrent
+from libmproxy.protocol.http import HTTPResponse
+from netlib.odict import ODictCaseless
+from adblockparser import AdblockRules
+from glob import glob
+
+
+
+def combined(filenames):
+  '''
+  Open and combine many files into a single generator which returns all
+  of their lines. (Like running "cat" on a bunch of files.)
+  '''
+  for filename in filenames:
+    with open(filename) as file:
+      for line in file:
+        yield line
+
+
+def load_rules(blocklists=None):
+  rules = AdblockRules( 
+    combined(blocklists), 
+    use_re2=True, 
+    max_mem=512*1024*1024
+    # supported_options=['script', 'domain', 'image', 'stylesheet', 'object'] 
+  )
+
+  return rules
+
+def start(context, argv):
+    '''
+    Called once on script startup, before any other events.
+    '''
+
+    global rules
+
+    blocklists = glob("easylists/*")
+
+    if len(blocklists) == 0:
+      context.log("Error, no blocklists found in 'easylists/'. Please run the 'update-blocklists' script.")
+      raise SystemExit
+
+    else:
+      context.log("* Loading adblock rules...")
+      for list in blocklists:
+        context.log("  |_ %s" % list)
+
+    rules = load_rules(blocklists)
+    context.log("")
+    context.log("* Done! Proxy server is ready to go!")
+
+
+
+IMAGE_MATCHER      = re2.compile(r"\.(png|jpe?g|gif)$")
+SCRIPT_MATCHER     = re2.compile(r"\.(js)$")
+STYLESHEET_MATCHER = re2.compile(r"\.(css)$")
+
+@concurrent
+def request(context, flow):
+    req = flow.request
+    # accept = flow.request.headers["Accept"]
+    # context.log("accept: %s" % flow.request.accept)
+
+    options = {'domain': req.host}
+
+    if IMAGE_MATCHER.search(req.path):
+        options["image"] = True
+    elif SCRIPT_MATCHER.search(req.path):
+        options["script"] = True
+    elif STYLESHEET_MATCHER.search(req.path):
+        options["stylesheet"] = True
+
+    if rules.should_block(req.url, options):
+        context.log("vvvvvvvvvvvvvvvvvvvv BLOCKED vvvvvvvvvvvvvvvvvvvvvvvvvvv")
+        context.log("accept: %s" % flow.request.headers.get("Accept"))
+        context.log("blocked-url: %s" % flow.request.url)
+        context.log("^^^^^^^^^^^^^^^^^^^^ BLOCKED ^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+
+        # resp = HTTPResponse((1,1), 404, "OK",
+        #     ODictCaseless([["Content-Type", "text/html"]]),
+        #     "A terrible ad has been removed!")
+
+        resp = HTTPResponse((1,1), 200, "OK",
+            ODictCaseless([["Content-Type", "text/html"]]),
+            "BLOCKED.")
+
+        flow.reply(resp)
+    else:
+        context.log("url: %s" % flow.request.url)
+
+
+"""
 An HTTP request.
 
 Exposes the following attributes:
@@ -41,99 +140,3 @@ Exposes the following attributes:
 
     timestamp_end: Timestamp indicating when request transmission ended
 """
-
-import re2
-from libmproxy.script import concurrent
-from libmproxy.protocol.http import HTTPResponse
-from netlib.odict import ODictCaseless
-from adblockparser import AdblockRules
-from glob import glob
-
-def combined(filenames):
-  for filename in filenames:
-    with open(filename) as file:
-      for line in file:
-        yield line
-
-
-def load_rules(blocklists=None):
-  rules = AdblockRules( 
-    combined(blocklists), 
-    use_re2=True, 
-    max_mem=512*1024*1024
-    # supported_options=['script', 'domain', 'image', 'stylesheet', 'object'] 
-  )
-
-  return rules
-
-def start(context, argv):
-    """
-        Called once on script startup, before any other events.
-    """
-    global rules
-
-    blocklists = glob("easylists/*")
-
-    if len(blocklists) == 0:
-      context.log("Error, no blocklists found in 'easylists/'. Please run the 'update-blocklists' script.")
-      raise SystemExit
-
-    else:
-      context.log("* Loading adblock rules...")
-      for list in blocklists:
-        context.log("  |_ %s" % list)
-
-    rules = load_rules(blocklists)
-    context.log("")
-    context.log("* Done! Proxy server is ready to go!")
-
-IMAGE_MATCHER = re2.compile(r"\.(png|jpe?g|gif)$")
-SCRIPT_MATCHER = re2.compile(r"\.(js)$")
-STYLESHEET_MATCHER = re2.compile(r"\.(css)$")
-
-@concurrent
-def request(context, flow):
-    req = flow.request
-    # accept = flow.request.headers["Accept"]
-    # context.log("accept: %s" % flow.request.accept)
-
-    options = {'domain': req.host}
-
-    if IMAGE_MATCHER.search(req.path):
-        options["image"] = True
-    elif SCRIPT_MATCHER.search(req.path):
-        options["script"] = True
-    elif STYLESHEET_MATCHER.search(req.path):
-        options["stylesheet"] = True
-
-    if rules.should_block(req.url, options):
-        context.log("vvvvvvvvvvvvvvvvvvvv BLOCKED vvvvvvvvvvvvvvvvvvvvvvvvvvv")
-        context.log("accept: %s" % flow.request.headers.get("Accept"))
-        context.log("blocked-url: %s" % flow.request.url)
-        context.log("^^^^^^^^^^^^^^^^^^^^ BLOCKED ^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-
-        # resp = HTTPResponse((1,1), 404, "OK",
-        #     ODictCaseless([["Content-Type", "text/html"]]),
-        #     "A terrible ad has been removed!")
-
-        resp = HTTPResponse((1,1), 200, "OK",
-            ODictCaseless([["Content-Type", "text/html"]]),
-            "BLOCKED.")
-
-        flow.reply(resp)
-    else:
-        context.log("url: %s" % flow.request.url)
-
-# def response(context, flow):
-#     """
-#        Called when a server response has been received.
-#     """
-#     context.log("response")
-
-# def error(context, flow):
-#     """
-#         Called when a flow error has occured, e.g. invalid server responses, or
-#         interrupted connections. This is distinct from a valid server HTTP error
-#         response, which is simply a response with an HTTP error code.
-#     """
-#     context.log("error on %s", flow)
