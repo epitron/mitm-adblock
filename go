@@ -2,11 +2,6 @@
 
 FLOWDIR="flows"
 PORT=8118
-DUMPFILE="$FLOWDIR/log-`date +%s`.flows"
-
-if [ ! -d "$FLOWDIR" ]; then
-  mkdir "$FLOWDIR"
-fi
 
 if [ "$1" == "-c" ]; then
   CMD="mitmproxy"
@@ -15,4 +10,21 @@ else
   CMD="mitmdump"
 fi
 
-$CMD -s adblock.py -p $PORT -w "$DUMPFILE" --stream 100k
+# TODO: parse args properly (position-independant)
+if [ "$1" == "-d" ]; then
+
+  if [ ! -d "$FLOWDIR" ]; then
+    mkdir "$FLOWDIR"
+  fi
+
+  DUMPFILE="$FLOWDIR/log-`date +%s`.flows"
+  echo "* Dumping data to $DUMPFILE..."
+
+  $CMD -s adblock.py -p $PORT -w "$DUMPFILE" --stream 100k
+
+else
+
+  $CMD -s adblock.py -p $PORT --stream 100k
+
+fi
+
