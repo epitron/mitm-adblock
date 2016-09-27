@@ -6,8 +6,8 @@ An mitmproxy adblock script!
 """
 
 import re2
-from libmproxy.script import concurrent
-from libmproxy.protocol.http import HTTPResponse
+from mitmproxy.script import concurrent
+from mitmproxy.protocol.http import HTTPResponse
 from netlib.odict import ODictCaseless
 from adblockparser import AdblockRules
 from glob import glob
