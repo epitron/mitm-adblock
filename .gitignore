@@ -1,4 +1,4 @@
 **/*.flows
 **/*.json
 **/*.pyc
-/easylists
+/blocklists

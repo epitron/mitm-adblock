@@ -20,11 +20,11 @@ if [ "$1" == "-d" ]; then
   DUMPFILE="$FLOWDIR/log-`date +%s`.flows"
   echo "* Dumping data to $DUMPFILE..."
 
-  $CMD -s adblock.py -p $PORT -w "$DUMPFILE" --stream 100k
+  $CMD -s adblock.py -p $PORT -w "$DUMPFILE" --set stream_large_bodies=100k
 
 else
 
-  $CMD -s adblock.py -p $PORT --stream 100k
+  $CMD -s adblock.py -p $PORT --set stream_large_bodies=100k
 
 fi
 

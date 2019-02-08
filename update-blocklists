@@ -1,5 +1,5 @@
 #!/bin/bash
-LISTDIR=easylists
+LISTDIR=blocklists
 
 if [ ! -d $LISTDIR ]; then
   mkdir $LISTDIR
@@ -7,7 +7,7 @@ fi
 
 cd $LISTDIR
 
-echo "* Updating easylists in $LISTDIR"
+echo "* Updating blocklists in $LISTDIR"
 
 wget -N https://easylist-downloads.adblockplus.org/easylist.txt
 wget -N https://easylist-downloads.adblockplus.org/easyprivacy.txt

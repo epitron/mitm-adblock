@@ -2,17 +2,21 @@
 An mitmproxy adblock script!
 (Required python modules: re2 and adblockparser)
 
-(c) 2015 epitron
+(c) 2015-2019 epitron
 """
 
 import re2
 from mitmproxy.script import concurrent
-from mitmproxy.protocol.http import HTTPResponse
-from netlib.odict import ODictCaseless
+from mitmproxy.http import HTTPResponse
 from adblockparser import AdblockRules
 from glob import glob
 
+IMAGE_MATCHER      = re2.compile(r"\.(png|jpe?g|gif)$")
+SCRIPT_MATCHER     = re2.compile(r"\.(js)$")
+STYLESHEET_MATCHER = re2.compile(r"\.(css)$")
 
+def log(msg):
+    print(msg)
 
 def combined(filenames):
   '''
@@ -26,48 +30,40 @@ def combined(filenames):
 
 
 def load_rules(blocklists=None):
-  rules = AdblockRules( 
-    combined(blocklists), 
-    use_re2=True, 
-    max_mem=512*1024*1024
-    # supported_options=['script', 'domain', 'image', 'stylesheet', 'object'] 
-  )
+    rules = AdblockRules(
+        combined(blocklists),
+        use_re2=True,
+        max_mem=512*1024*1024
+        # supported_options=['script', 'domain', 'image', 'stylesheet', 'object']
+    )
 
-  return rules
-
-def start(context, argv):
-    '''
-    Called once on script startup, before any other events.
-    '''
-
-    global rules
-
-    blocklists = glob("easylists/*")
-
-    if len(blocklists) == 0:
-      context.log("Error, no blocklists found in 'easylists/'. Please run the 'update-blocklists' script.")
-      raise SystemExit
-
-    else:
-      context.log("* Loading adblock rules...")
-      for list in blocklists:
-        context.log("  |_ %s" % list)
-
-    rules = load_rules(blocklists)
-    context.log("")
-    context.log("* Done! Proxy server is ready to go!")
+    return rules
 
 
+blocklists = glob("blocklists/*")
 
-IMAGE_MATCHER      = re2.compile(r"\.(png|jpe?g|gif)$")
-SCRIPT_MATCHER     = re2.compile(r"\.(js)$")
-STYLESHEET_MATCHER = re2.compile(r"\.(css)$")
+if len(blocklists) == 0:
+  log("Error, no blocklists found in 'easylists/'. Please run the 'update-blocklists' script.")
+  raise SystemExit
+
+else:
+  log("* Available blocklists:")
+  for list in blocklists:
+    log("  |_ %s" % list)
+
+log("* Loading blocklists...")
+rules = load_rules(blocklists)
+log("")
+log("* Done! Proxy server is ready to go!")
+
 
 @concurrent
-def request(context, flow):
+def request(flow):
+    global rules
+
     req = flow.request
     # accept = flow.request.headers["Accept"]
-    # context.log("accept: %s" % flow.request.accept)
+    # log("accept: %s" % flow.request.accept)
 
     options = {'domain': req.host}
 
@@ -79,20 +75,20 @@ def request(context, flow):
         options["stylesheet"] = True
 
     if rules.should_block(req.url, options):
-        context.log("vvvvvvvvvvvvvvvvvvvv BLOCKED vvvvvvvvvvvvvvvvvvvvvvvvvvv")
-        context.log("accept: %s" % flow.request.headers.get("Accept"))
-        context.log("blocked-url: %s" % flow.request.url)
-        context.log("^^^^^^^^^^^^^^^^^^^^ BLOCKED ^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+        log("vvvvvvvvvvvvvvvvvvvv BLOCKED vvvvvvvvvvvvvvvvvvvvvvvvvvv")
+        log("accept: %s" % flow.request.headers.get("Accept"))
+        log("blocked-url: %s" % flow.request.url)
+        log("^^^^^^^^^^^^^^^^^^^^ BLOCKED ^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
         # resp = HTTPResponse((1,1), 404, "OK",
         #     ODictCaseless([["Content-Type", "text/html"]]),
         #     "A terrible ad has been removed!")
-    
+
         # HTTPResponse(http_version, status_code, reason, headers, content, timestamp_start=None, timestamp_end=None)
 
         # resp = HTTPResponse(
-        #     (1,1), 
-        #     200, 
+        #     (1,1),
+        #     200,
         #     "OK",
         #     ODictCaseless(
         #         [
@@ -103,8 +99,8 @@ def request(context, flow):
         # )
 
         resp = HTTPResponse(
-            (1,1), 
-            200, 
+            (1,1),
+            200,
             "OK",
             Headers(content_type="text/html"),
             "BLOCKED."
@@ -112,7 +108,7 @@ def request(context, flow):
 
         flow.reply(resp)
     else:
-        context.log("url: %s" % flow.request.url)
+        log("url: %s" % flow.request.url)
 
 
 """
