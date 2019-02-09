@@ -43,7 +43,7 @@ def load_rules(blocklists=None):
 blocklists = glob("blocklists/*")
 
 if len(blocklists) == 0:
-  log("Error, no blocklists found in 'easylists/'. Please run the 'update-blocklists' script.")
+  log("Error, no blocklists found in 'blocklists/'. Please run the 'update-blocklists' script.")
   raise SystemExit
 
 else:
