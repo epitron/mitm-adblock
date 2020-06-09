@@ -9,7 +9,7 @@ cd $LISTDIR
 
 echo "* Updating blocklists in $LISTDIR"
 
-wget -N https://easylist-downloads.adblockplus.org/easylist.txt
-wget -N https://easylist-downloads.adblockplus.org/easyprivacy.txt
-wget -N https://easylist-downloads.adblockplus.org/fanboy-annoyance.txt
-wget -N https://easylist-downloads.adblockplus.org/fanboy-social.txt
+wget --no-check-certificate -N https://easylist-downloads.adblockplus.org/easylist.txt
+wget --no-check-certificate -N https://easylist-downloads.adblockplus.org/easyprivacy.txt
+wget --no-check-certificate -N https://easylist-downloads.adblockplus.org/fanboy-annoyance.txt
+wget --no-check-certificate -N https://easylist-downloads.adblockplus.org/fanboy-social.txt

@@ -1,0 +1,3 @@
+mitmproxy==5.1.1
+adblockparser==0.7
+git+https://github.com/andreasvc/pyre2.git
