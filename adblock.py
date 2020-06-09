@@ -11,6 +11,8 @@ from mitmproxy import http
 from adblockparser import AdblockRules
 from glob import glob
 
+__version__ = '0.1.0'
+
 IMAGE_MATCHER      = re2.compile(r"\.(png|jpe?g|gif)$")
 SCRIPT_MATCHER     = re2.compile(r"\.(js)$")
 STYLESHEET_MATCHER = re2.compile(r"\.(css)$")
